@@ -42,4 +42,20 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the user is the seeded admin.
+     *
+     * Pulls credentials from env (ADMIN_EMAIL / ADMIN_PASSWORD) with
+     * deterministic fallbacks so the harness works without a populated .env.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => 'Admin',
+            'email' => env('ADMIN_EMAIL', 'admin@example.test'),
+            'password' => Hash::make(env('ADMIN_PASSWORD', 'secret-pass')),
+            'email_verified_at' => now(),
+        ]);
+    }
 }
