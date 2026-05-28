@@ -16,6 +16,7 @@ Route::get('/user', function (Request $request) {
 // Protegemos todas las rutas del catálogo con Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('products', ProductController::class);

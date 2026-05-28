@@ -4,6 +4,8 @@ namespace Tests\Feature\Api\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class LogoutTest extends TestCase
@@ -26,13 +28,19 @@ class LogoutTest extends TestCase
     public function test_logout_then_me_returns_401_with_revoked_token(): void
     {
         $user = User::factory()->create(['email' => 'admin@example.test']);
-        $token = $user->createToken('admin')->plainTextToken;
+        $plainToken = $user->createToken('admin')->plainTextToken;
 
-        $this->withHeader('Authorization', 'Bearer '.$token)
+        $this->withHeader('Authorization', 'Bearer '.$plainToken)
             ->postJson('/api/auth/logout')
             ->assertStatus(204);
 
-        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+        $this->assertSame(0, PersonalAccessToken::count(), 'Token row should be gone after logout');
+
+        // Clear the auth guard cache so the next request re-resolves
+        // the user from the (now revoked) Bearer token.
+        Auth::forgetGuards();
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$plainToken)
             ->getJson('/api/auth/me');
 
         $response->assertStatus(401);
