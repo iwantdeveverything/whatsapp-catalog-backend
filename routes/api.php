@@ -6,8 +6,9 @@ use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Public auth endpoints (Sanctum token issuance).
-Route::post('/auth/login', [AuthController::class, 'login']);
+// Public auth endpoints (Sanctum token issuance), rate limited per email + IP.
+Route::post('/auth/login', [AuthController::class, 'login'])
+    ->middleware('throttle:login');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
