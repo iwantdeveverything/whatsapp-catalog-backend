@@ -20,9 +20,11 @@ class MeTest extends TestCase
 
         $response = $this->getJson('/api/auth/me');
 
+        // Flat, unwrapped shape — consistent with the login response's
+        // `user` object (no `data` envelope).
         $response->assertStatus(200)
             ->assertExactJson([
-                'data' => ['email' => 'admin@example.test'],
+                'email' => 'admin@example.test',
             ]);
     }
 

@@ -23,8 +23,9 @@ class TokenModeTest extends TestCase
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/auth/me');
 
+        // Unwrapped shape — no `data` envelope (matches the frontend contract).
         $response->assertStatus(200)
-            ->assertJsonPath('data.email', 'admin@example.test');
+            ->assertJsonPath('email', 'admin@example.test');
     }
 
     public function test_session_cookie_without_bearer_does_not_authenticate_api(): void
