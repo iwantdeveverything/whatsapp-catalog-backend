@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Public auth endpoints (Sanctum token issuance), rate limited per email + IP.
+Route::post('/auth/login', [AuthController::class, 'login'])
+    ->middleware('throttle:login');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -11,6 +16,9 @@ Route::get('/user', function (Request $request) {
 
 // Protegemos todas las rutas del catálogo con Sanctum
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('products', ProductController::class);
 });
