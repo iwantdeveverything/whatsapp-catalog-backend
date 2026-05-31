@@ -46,7 +46,7 @@ class LoginTest extends TestCase
         ]);
 
         $response->assertStatus(401)
-            ->assertExactJson(['message' => 'Invalid credentials']);
+            ->assertExactJson(['error' => 'Invalid email or password']);
 
         $this->assertSame(0, \DB::table('personal_access_tokens')->count());
     }
@@ -59,7 +59,7 @@ class LoginTest extends TestCase
         ]);
 
         $response->assertStatus(401)
-            ->assertExactJson(['message' => 'Invalid credentials']);
+            ->assertExactJson(['error' => 'Invalid email or password']);
     }
 
     public function test_login_returns_422_when_email_missing(): void

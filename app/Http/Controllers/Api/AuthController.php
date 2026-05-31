@@ -16,8 +16,9 @@ class AuthController extends Controller
     /**
      * Authenticate an admin and issue a Sanctum personal access token.
      *
-     * Returns 401 with a uniform `{message:"Invalid credentials"}` envelope
+     * Returns 401 with a uniform `{error:"Invalid email or password"}` envelope
      * for both wrong-password and unknown-email cases (AUTH-01, ADR-3).
+     * The `error` key matches the frontend API contract error envelope.
      * Validation errors (missing fields) follow Laravel's default 422 shape.
      */
     public function login(LoginRequest $request): JsonResponse
@@ -28,7 +29,7 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['error' => 'Invalid email or password'], 401);
         }
 
         $token = $user->createToken('admin')->plainTextToken;
