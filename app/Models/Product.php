@@ -6,19 +6,25 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
+    use SoftDeletes;
+
     protected $fillable = [
         'category_id',
         'name',
+        'slug',
         'description',
         'price',
         'currency',
-        'status',
+        'whatsapp',
+        'phone',
+        'is_active',
         'images',
         'variant_options',
         'item_group_id',
@@ -29,7 +35,14 @@ class Product extends Model
         return [
             'images' => AsArrayObject::class,
             'variant_options' => 'array',
+            'price' => 'decimal:2',
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 
     public function category()
