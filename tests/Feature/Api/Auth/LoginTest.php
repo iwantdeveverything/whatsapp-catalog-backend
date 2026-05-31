@@ -81,4 +81,15 @@ class LoginTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['password']);
     }
+
+    public function test_login_returns_422_when_password_below_min_length(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'admin@example.test',
+            'password' => 'short',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+    }
 }
