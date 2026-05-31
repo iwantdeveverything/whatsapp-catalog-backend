@@ -23,6 +23,8 @@ class CategoryFactory extends Factory
         return [
             'name' => ucfirst($name),
             'slug' => Str::slug($name).'-'.Str::lower(Str::random(6)),
+            'description' => fake()->optional()->sentence(),
+            'is_active' => true,
         ];
     }
 }
