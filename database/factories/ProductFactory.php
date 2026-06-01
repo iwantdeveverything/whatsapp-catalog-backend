@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Product>
@@ -18,13 +19,18 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
+        $name = ucfirst(fake()->unique()->words(3, true));
+
         return [
             'category_id' => Category::factory(),
-            'name' => ucfirst(fake()->unique()->words(3, true)),
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.Str::lower(Str::random(6)),
             'description' => fake()->sentence(),
             'price' => fake()->randomFloat(2, 1, 999),
             'currency' => 'USD',
-            'status' => 'active',
+            'whatsapp' => fake()->optional()->numerify('549###########'),
+            'phone' => fake()->optional()->phoneNumber(),
+            'is_active' => true,
             'images' => [fake()->imageUrl()],
             'variant_options' => [],
             'item_group_id' => null,
