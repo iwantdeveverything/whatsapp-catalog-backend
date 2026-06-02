@@ -37,6 +37,7 @@ class CategoryController extends Controller
     {
         $data = $request->validated();
         $data['slug'] = $this->slugGenerator->generate($data['name'], 'categories');
+        $data['is_active'] = $data['is_active'] ?? true;
 
         $category = Category::create($data);
         $category->loadCount('products');
