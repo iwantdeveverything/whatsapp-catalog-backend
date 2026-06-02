@@ -55,6 +55,27 @@ class UpdateTest extends TestCase
             ->assertJsonPath('slug', 'casual-2');
     }
 
+    public function test_rename_to_own_existing_slug_does_not_self_collide(): void
+    {
+        $this->actingAsAdmin();
+
+        // Single category whose name slugifies to "running". Renaming it to a
+        // different display name that slugifies back to "running" must KEEP
+        // "running" — the SlugGenerator $ignoreId guard excludes the row's own
+        // id, so it must NOT spuriously append a "-2" suffix.
+        Category::factory()->create(['name' => 'running', 'slug' => 'running']);
+
+        $response = $this->putJson('/api/categories/running', ['name' => 'Running']);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('name', 'Running')
+            ->assertJsonPath('slug', 'running')
+            ->assertJsonPath('id', 'running');
+
+        $this->assertDatabaseHas('categories', ['slug' => 'running']);
+        $this->assertDatabaseMissing('categories', ['slug' => 'running-2']);
+    }
+
     public function test_update_returns_404_for_unknown_slug(): void
     {
         $this->actingAsAdmin();

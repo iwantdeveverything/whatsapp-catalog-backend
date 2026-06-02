@@ -29,14 +29,36 @@ class StoreTest extends TestCase
         $this->assertDatabaseHas('categories', ['slug' => 'running', 'name' => 'Running']);
     }
 
-    public function test_store_defaults_is_active_to_true(): void
+    public function test_store_defaults_is_active_to_true_at_db_level_without_exposing_it(): void
     {
         $this->actingAsAdmin();
 
         $response = $this->postJson('/api/categories', ['name' => 'Casual']);
 
         $response->assertStatus(201)
-            ->assertJsonPath('isActive', true);
+            ->assertJsonMissingPath('isActive');
+
+        $this->assertDatabaseHas('categories', [
+            'slug' => 'casual',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_store_ignores_client_supplied_slug(): void
+    {
+        $this->actingAsAdmin();
+
+        $response = $this->postJson('/api/categories', [
+            'name' => 'Running',
+            'slug' => 'hacked-slug',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('slug', 'running')
+            ->assertJsonPath('id', 'running');
+
+        $this->assertDatabaseHas('categories', ['slug' => 'running']);
+        $this->assertDatabaseMissing('categories', ['slug' => 'hacked-slug']);
     }
 
     public function test_store_collision_suffixes_the_slug(): void
