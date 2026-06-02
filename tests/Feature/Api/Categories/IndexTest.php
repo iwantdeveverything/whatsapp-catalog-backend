@@ -61,7 +61,7 @@ class IndexTest extends TestCase
         $first = $response->json()[0];
 
         $this->assertSame(
-            ['id', 'name', 'slug', 'description', 'isActive', 'productCount'],
+            ['id', 'name', 'slug', 'description', 'productCount'],
             array_keys($first)
         );
     }

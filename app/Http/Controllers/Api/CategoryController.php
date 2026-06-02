@@ -37,8 +37,10 @@ class CategoryController extends Controller
     {
         $data = $request->validated();
         $data['slug'] = $this->slugGenerator->generate($data['name'], 'categories');
-        $data['is_active'] = $data['is_active'] ?? true;
 
+        // `is_active` is not set here: the categories table has a DB-level
+        // default of `true` (migration CAT-07), so new rows are active by
+        // default. The client cannot set it (not in CategoryFormSchema).
         $category = Category::create($data);
         $category->loadCount('products');
 

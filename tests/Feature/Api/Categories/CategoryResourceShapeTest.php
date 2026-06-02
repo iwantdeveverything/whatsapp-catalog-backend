@@ -30,12 +30,11 @@ class CategoryResourceShapeTest extends TestCase
             'name' => 'Running',
             'slug' => 'running',
             'description' => 'Sport',
-            'isActive' => true,
             'productCount' => 0,
         ], $array);
 
         $this->assertSame(
-            ['id', 'name', 'slug', 'description', 'isActive', 'productCount'],
+            ['id', 'name', 'slug', 'description', 'productCount'],
             array_keys($array)
         );
     }
@@ -58,7 +57,7 @@ class CategoryResourceShapeTest extends TestCase
         $this->assertSame('casual', $array['id']);
         $this->assertSame('casual', $array['slug']);
         $this->assertNull($array['description']);
-        $this->assertFalse($array['isActive']);
+        $this->assertArrayNotHasKey('isActive', $array);
         $this->assertSame(2, $array['productCount']);
     }
 }

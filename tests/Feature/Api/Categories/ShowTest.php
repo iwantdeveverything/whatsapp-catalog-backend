@@ -26,7 +26,7 @@ class ShowTest extends TestCase
             ->assertJsonPath('productCount', 2);
 
         $this->assertSame(
-            ['id', 'name', 'slug', 'description', 'isActive', 'productCount'],
+            ['id', 'name', 'slug', 'description', 'productCount'],
             array_keys($response->json())
         );
     }

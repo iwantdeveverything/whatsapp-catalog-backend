@@ -10,9 +10,11 @@ class CategoryResource extends JsonResource
     /**
      * Transform the category into the frontend contract shape (CAT-03).
      *
-     * Emits exactly six camelCase keys. `id` is the slug (not the integer PK),
-     * `isActive` maps from `is_active`, and `productCount` comes from the
-     * `withCount('products')` aggregate (`products_count`). No timestamps,
+     * Emits exactly FIVE camelCase keys per API_CONTRACT §3.1: `id` (the slug,
+     * not the integer PK), `name`, `slug`, `description`, and `productCount`
+     * (from the `withCount('products')` aggregate, `products_count`). The
+     * `is_active` column is internal and intentionally NOT exposed — it belongs
+     * to Products in the frontend contract, not Categories. No timestamps,
      * `deleted_at`, or internal foreign keys leak (INF-05).
      *
      * @return array<string, mixed>
@@ -24,7 +26,6 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'isActive' => (bool) $this->is_active,
             'productCount' => (int) ($this->products_count ?? 0),
         ];
     }

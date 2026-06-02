@@ -13,7 +13,9 @@ class StoreCategoryRequest extends FormRequest
     }
 
     /**
-     * Slug is auto-generated from `name` server-side (CAT-04); it is never
+     * Per API_CONTRACT §3.3 (CategoryFormSchema) the client may send only
+     * `name` and `description`. Slug is auto-generated from `name` server-side
+     * (CAT-04) and `is_active` is internal (DB default `true`); neither is
      * accepted from the client.
      *
      * @return array<string, mixed>
@@ -23,7 +25,6 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'sometimes|boolean',
         ];
     }
 }

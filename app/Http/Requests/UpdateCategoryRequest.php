@@ -12,8 +12,10 @@ class UpdateCategoryRequest extends FormRequest
     }
 
     /**
-     * Partial update (CAT-05): every field is optional. When `name` is present
-     * and changed, the controller regenerates the collision-suffixed slug.
+     * Partial update (CAT-05): every field is optional. Per API_CONTRACT §3.4
+     * the client may send only `name` and `description`; `is_active` is internal
+     * and not accepted. When `name` is present and changed, the controller
+     * regenerates the collision-suffixed slug.
      *
      * @return array<string, mixed>
      */
@@ -22,7 +24,6 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'name' => 'sometimes|string|max:255',
             'description' => 'sometimes|nullable|string',
-            'is_active' => 'sometimes|boolean',
         ];
     }
 }
