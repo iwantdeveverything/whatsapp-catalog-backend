@@ -20,5 +20,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('products', ProductController::class);
+
+    // `show` resolves soft-deleted products so the admin can still view a
+    // discontinued item (PROD-03); index and writes keep the default
+    // non-trashed binding.
+    Route::apiResource('products', ProductController::class)
+        ->withTrashed(['show']);
 });

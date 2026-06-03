@@ -47,9 +47,18 @@ class ProductController extends Controller
         return response()->json($product, 201);
     }
 
-    public function show(Product $product)
+    /**
+     * Show a single product resolved by slug, including soft-deleted rows
+     * (PROD-03). Trashed products serialize with `isActive=false`. The
+     * `withTrashed` route binding (routes/api.php) supplies trashed rows.
+     */
+    public function show(Product $product): ProductResource
     {
-        return $product->load(['category', 'variants']);
+        $this->authorize('view', $product);
+
+        $product->load('category');
+
+        return new ProductResource($product);
     }
 
     public function update(Request $request, Product $product)
