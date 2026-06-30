@@ -1,0 +1,7 @@
+version: "1.0"
+mode: "hybrid"
+strict_tdd: true
+stack: "Laravel 13, PHP 8.3, SQLite"
+testing:
+  runner: "PHPUnit"
+  command: "php artisan test"

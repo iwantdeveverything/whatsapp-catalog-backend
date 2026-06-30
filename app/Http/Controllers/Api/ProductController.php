@@ -5,13 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\IndexProductRequest;
 use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\SlugGenerator;
+
 class ProductController extends Controller
 {
+    public function __construct(private readonly SlugGenerator $slugGenerator) {}
+
     /**
      * List active, non-trashed products with optional search/category
      * filters and allow-listed sorting (PROD-01, PROD-02).
@@ -40,11 +45,17 @@ class ProductController extends Controller
         return ProductResource::collection($products)->response();
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        $product = Product::create($request->validated());
+        $data = $request->validated();
+        $data['slug'] = $this->slugGenerator->generate($data['name'], 'products');
 
-        return response()->json($product, 201);
+        $product = Product::create($data);
+        $product->load('category');
+
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(\Illuminate\Http\Response::HTTP_CREATED);
     }
 
     /**
@@ -61,17 +72,24 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): ProductResource
     {
-        // Usamos all() para simplificar el ejemplo,
-        // en producción requeriría su UpdateProductRequest
-        $product->update($request->all());
+        $data = $request->validated();
 
-        return response()->json($product);
+        if (array_key_exists('name', $data) && $data['name'] !== $product->name) {
+            $data['slug'] = $this->slugGenerator->generate($data['name'], 'products', $product->id);
+        }
+
+        $product->update($data);
+        $product->load('category');
+
+        return new ProductResource($product);
     }
 
-    public function destroy(Product $product)
+    public function destroy(Product $product): \Illuminate\Http\Response
     {
+        $this->authorize('delete', $product);
+
         $product->delete();
 
         return response()->noContent();
