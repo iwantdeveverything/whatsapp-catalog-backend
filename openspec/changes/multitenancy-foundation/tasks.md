@@ -41,6 +41,7 @@ Chain-strategy note: slices are independently shippable → `stacked-to-main` fi
 - [x] 1.6 refactor(api): Pint; committed as 2 work units (tenants foundation; tenant_id + composite uniqueness)
 - [x] CAVEAT-A (RESOLVED): partial index `WHERE deleted_at IS NULL` verified working on SQLite :memory: test driver (composite storage tests green); prod PostgreSQL also supports it per engram #751. Implemented via raw `DB::statement('CREATE UNIQUE INDEX ...')`.
 - DEVIATION (see engram #752): `tenant_id` is NULLABLE this slice (design §3.2 said NOT NULL). Auto-fill creating hook is slice 2; controllers create rows without tenant_id, so NOT NULL now would break write tests. Slice 2 must add the hook AND a tighten-to-NOT-NULL migration.
+- **SHIP GATE (BLOCKING):** Slice 1 MUST NOT reach production independently of Slice 2 — the composite slug/key uniqueness is INERT until `tenant_id` is NOT NULL. NULLs are distinct in SQL unique indexes (SQLite + PostgreSQL), so NULL-tenant rows have no atomic DB-level uniqueness. Deploy Slices 1+2 together.
 - Closes: DB substrate for MT-UNIQ-001 (storage half), MT-ISO-*.
 
 ## Slice 2 / PR 2 — Scope engine + isolation (MT-ISO-001..006)
@@ -51,8 +52,10 @@ Chain-strategy note: slices are independently shippable → `stacked-to-main` fi
 - [ ] 2.4 feat(api): `App\Models\Scopes\TenantScope` + `App\Models\Concerns\BelongsToTenant` (addGlobalScope, idempotent creating hook, tenant() relation, tenant_id OUT of fillable)
 - [ ] 2.5 feat(api): apply `BelongsToTenant` to Product/Category/Setting; add tenant-aware factory states (`->for($tenant)`); add `InteractsWithTenancy` TestCase trait
 - [ ] 2.6 test(api): `IndexIsolationTest` (MT-ISO-001), `MassAssignmentTest` (MT-ISO-005 both scenarios), `WithTrashedTenancyTest` (MT-ISO-004) — RED → green already covered by 2.4/2.5
-- [ ] 2.7 refactor(api): Pint; commit
-- Test files: TenantContextTest, TenantScopeTest, IndexIsolationTest, MassAssignmentTest, WithTrashedTenancyTest. Closes criteria 1,4,5.
+- [ ] 2.7 test(db): `tests/Feature/Tenancy/TenantIdNotNullSchemaTest` asserts `tenant_id` is NOT NULL on products/categories/settings after the tighten migration; update/remove the NULL-tenant gap visibility test (`NullTenantSlugGapTest`) which is no longer constructible — RED
+- [ ] 2.8 feat(db): migration `tighten_tenant_id_not_null_on_{products,categories,settings}` — runs AFTER the BelongsToTenant creating-hook auto-fill (2.4) lands and all write paths populate `tenant_id`; changes the column to NOT NULL. This RESTORES enforcement of the composite `(tenant_id, slug)` / `(tenant_id, key)` unique indexes for what were previously NULL-tenant rows (NULLs are distinct in SQL unique indexes, so the index was inert until now). Closes the Slice 1 SHIP GATE.
+- [ ] 2.9 refactor(api): Pint; commit
+- Test files: TenantContextTest, TenantScopeTest, IndexIsolationTest, MassAssignmentTest, WithTrashedTenancyTest, TenantIdNotNullSchemaTest. Closes criteria 1,4,5.
 - SIZE WATCH: likely >400 lines — keep impl and test commits separable for possible sub-split.
 
 ## Slice 3 / PR 3 — Admin resolution + IDOR (MT-RES-001,002; MT-ISO-002,003; MT-AUTHZ-001)
