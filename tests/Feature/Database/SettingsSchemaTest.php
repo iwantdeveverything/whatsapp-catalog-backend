@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Database;
 
+use App\Models\Tenant;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -22,9 +23,14 @@ class SettingsSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumn('settings', 'updated_at'));
     }
 
-    public function test_settings_key_is_unique(): void
+    public function test_settings_key_is_unique_within_a_tenant(): void
     {
+        // Global key uniqueness was replaced by composite (tenant_id, key)
+        // uniqueness. Within one tenant a key still collides.
+        $tenant = Tenant::factory()->create();
+
         DB::table('settings')->insert([
+            'tenant_id' => $tenant->id,
             'key' => 'catalog_name',
             'value' => json_encode('Shop'),
             'created_at' => now(),
@@ -34,6 +40,7 @@ class SettingsSchemaTest extends TestCase
         $this->expectException(QueryException::class);
 
         DB::table('settings')->insert([
+            'tenant_id' => $tenant->id,
             'key' => 'catalog_name',
             'value' => json_encode('Other'),
             'created_at' => now(),

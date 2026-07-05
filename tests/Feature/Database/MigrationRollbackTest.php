@@ -18,19 +18,24 @@ class MigrationRollbackTest extends TestCase
     {
         Artisan::call('migrate:fresh');
 
-        // Forward state: reconciled schema present.
+        // Forward state: reconciled schema + tenancy foundation present.
         $this->assertTrue(Schema::hasColumn('products', 'slug'));
         $this->assertFalse(Schema::hasColumn('products', 'status'));
         $this->assertTrue(Schema::hasColumn('categories', 'is_active'));
         $this->assertTrue(Schema::hasTable('settings'));
+        $this->assertTrue(Schema::hasTable('tenants'));
+        $this->assertTrue(Schema::hasColumn('products', 'tenant_id'));
 
-        // Roll back the three reconciliation migrations.
-        Artisan::call('migrate:rollback', ['--step' => 3]);
+        // Roll back the five tenancy migrations plus the three reconciliation
+        // migrations (tenancy migrations were layered on top of reconcile).
+        Artisan::call('migrate:rollback', ['--step' => 8]);
 
+        $this->assertFalse(Schema::hasTable('tenants'));
+        $this->assertFalse(Schema::hasColumn('products', 'tenant_id'));
         $this->assertFalse(Schema::hasTable('settings'));
         $this->assertFalse(Schema::hasColumn('products', 'slug'));
         $this->assertFalse(Schema::hasColumn('categories', 'is_active'));
-        // status is restored by the products down() migration.
+        // status is restored by the products reconcile down() migration.
         $this->assertTrue(Schema::hasColumn('products', 'status'));
 
         // Re-apply: end state must match the forward state.
@@ -40,5 +45,7 @@ class MigrationRollbackTest extends TestCase
         $this->assertFalse(Schema::hasColumn('products', 'status'));
         $this->assertTrue(Schema::hasColumn('categories', 'is_active'));
         $this->assertTrue(Schema::hasTable('settings'));
+        $this->assertTrue(Schema::hasTable('tenants'));
+        $this->assertTrue(Schema::hasColumn('products', 'tenant_id'));
     }
 }
