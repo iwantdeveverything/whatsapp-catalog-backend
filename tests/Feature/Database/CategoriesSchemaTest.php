@@ -3,6 +3,7 @@
 namespace Tests\Feature\Database;
 
 use App\Models\Category;
+use App\Models\Tenant;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -21,13 +22,17 @@ class CategoriesSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumn('categories', 'deleted_at'));
     }
 
-    public function test_categories_slug_is_unique(): void
+    public function test_categories_slug_is_unique_within_a_tenant(): void
     {
-        Category::factory()->create(['slug' => 'duplicate-slug']);
+        // Global slug uniqueness was replaced by composite (tenant_id, slug)
+        // uniqueness (MT-UNIQ-001). Within one tenant a slug still collides.
+        $tenant = Tenant::factory()->create();
+
+        Category::factory()->create(['tenant_id' => $tenant->id, 'slug' => 'duplicate-slug']);
 
         $this->expectException(QueryException::class);
 
-        Category::factory()->create(['slug' => 'duplicate-slug']);
+        Category::factory()->create(['tenant_id' => $tenant->id, 'slug' => 'duplicate-slug']);
     }
 
     public function test_categories_is_active_defaults_to_true(): void
